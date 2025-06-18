@@ -1,0 +1,72 @@
+(a)
+db.library.insertOne({ TITEL: 'Die Känguru-Chroniken: Ansichten eines vorlauten Beuteltiers', AUTOR: 'Marc-Uwe-Kling', VERLAG: 'Ullstein-Verlag', INVNR: 1 })
+db.library.insertMany([{ TITEL: 'Anne Auf Green Gables', AUTOR: 'Lucy Maud Montgomery', VERLAG: 'LOEWE', INVNR: 4 }, { TITEL: 'Schaf und Ziege: Kleine Geschichten einer großen Freundschaft', AUTOR: 'Marleen Westera', VERLAG: 'Sauerländer', INVRN: 5 }, { TITEL: 'Das große Wilhelm Busch Album', AUTOR: 'Wilhelm Busch', VERLAG: 'Edition XXL', INVNR: 6 }])
+db.reader.insertOne({ NAME: 'Friedrich Funke', ADRESSE: 'Bahnhofstraße 17, 23758 Oldenburg', LNR: 1 })
+// Sachverhalt lässt sich in neuer colection 'entliehen' darstellen
+db.entliehen.insertOne({ INVNR: 1, LNR: 1, RÜCKGABEDATUM: '02.03.2024' })
+
+(b)
+db.bücher.find({ 'AUTOR': 'Marc-Uwe-Kling' })
+
+(c)
+db.bücher.countDocuments()
+
+(d)
+db.entliehen.aggregate(
+    [
+        {
+            $group: {
+                _id: "$LNR",
+                count: { $sum: 1 }
+            }
+        },
+        {
+            $match: {
+                count: { $gt: 1 }
+            }
+        },
+        {
+            $sort: {
+                count: -1
+            }
+        },
+        {
+            $lookup: {
+                from: "leser",
+                localField: "_id",
+                foreignField: "LNR",
+                as: "Leser"
+            }
+        },
+    ]
+)
+
+(e)
+// Es muss ein Dokument hinzugefügt werden, das den Verleih eines Buches an einen Leser darstellt und dann gelöscht werden, um den Verleih zu beenden.
+db.entliehen.insertOne({ INVNR: 1, LNR: 1, RÜCKGABEDATUM: '02.03.2024' })
+db.entliehen.deleteOne({ INVNR: 1, LNR: 1 })
+
+(f)
+db.leserundbücher.insertOne({NAME: 'Heinz Müller', ADRESSE: 'Klopstockweg 17, 38124 Braunschweig', LNR: 2, TITEL: 'Die Känguru-Chroniken: Ansichten eines vorlauten Beuteltiers', AUTOR: 'Marc-Uwe-Kling', VERLAG: 'Ullstein-Verlag', INVNR: 1, RÜCKGABEDATUM: '02.03.20024'})
+
+Vorteile
+// - Die Datenbank ist flexibel und ermöglicht eine einfache Erweiterung
+// - MongoDB unterstützt komplexe Abfragen und Aggregationen
+// - Die Datenstruktur ist gut geeignet für unstrukturierte Daten wie Bücher und Leserinformationen
+
+Nachteile
+// - MongoDB ist nicht relational, was zu Redundanz führen kann
+// - Es gibt keine festen Schemata, was zu Inkonsistenzen führen kann
+// - Transaktionen sind komplexer zu handhaben als in relationalen Datenbanken
+
+(g)
+// Aktualisierung der Leserinformationen durch .update
+db.leserundbücher.update(
+    { LNR: 2 },
+    { $set: { INVNR: 1, TITEL: 'Die Känguru-Chroniken: Ansichten eines vorlauten Beuteltiers', AUTOR: 'Marc-Uwe-Kling', VERLAG: 'Ullstein-Verlag', RÜCKGABEDATUM: '02.03.20024' } }
+)
+db.leserundbücher.update(
+    { LNR: 2, INVNR: 1 },
+    { $set: { INVNR: null, TITEL: null, AUTOR: null, VERLAG: null, RÜCKGABEDATUM: null } }
+)
+db.leserundbücher.insertOne({NAME: 'Friedrich Funke', ADRESSE: 'Bahnhofstraße 17, 23758 Oldenburg', LNR: 1, TITEL: 'Die Känguru-Chroniken: Ansichten eines vorlauten Beuteltiers', AUTOR: 'Marc-Uwe-Kling', VERLAG: 'Ullstein-Verlag', INVNR: 1, RÜCKGABEDATUM: '02.03.20024'})
