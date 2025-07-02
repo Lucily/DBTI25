@@ -15,7 +15,12 @@ CREATE TABLE dim_zeit (
 DROP TABLE IF EXISTS dim_mitarbeiter;
 
 CREATE TABLE dim_mitarbeiter (
-  -- hier bitte die Attributdefinitionen einsetzen
+  mitarbeiter_id INT NOT NULL PRIMARY KEY,
+  vorname char(20) NOT NULL,
+  nachname char(20) NOT NULL,
+  geh_stufe varchar(4) NOT NULL,
+  abt_nr char(3) NOT NULL,
+  krankenkasse char(3) NOT NULL
 );
 
 -- Faktentabelle: Gehaltszahlung
